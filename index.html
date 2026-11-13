@@ -90,7 +90,13 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <h1>Quote request</h1>
+    <h1>Requesting a quote for</h1>
+    <ul>
+      <li>Battery</li>
+      <li>Hybrid inverter, replacing the faulty one</li>
+      <li>Sub-board (switchboard is full)</li>
+    </ul>
+    <p><strong>Optional:</strong> with and without extra and/or replacement solar panels</p>
 
     <div id="gallery"></div>
 
@@ -98,17 +104,6 @@
     <ul>
       <li>Aurora inverter: 3.2 kW, 10.5 years old, faulty</li>
       <li>Main switch: 32 A</li>
-    </ul>
-
-    <h2>Job</h2>
-    <ul>
-      <li>Battery, with a hybrid inverter replacing the faulty one</li>
-      <li>Add a sub-board (switchboard is full)</li>
-    </ul>
-
-    <h2>Optional</h2>
-    <ul>
-      <li>Quote with and without extra and/or replacement solar panels</li>
     </ul>
   </aside>
 
@@ -618,7 +613,7 @@ callout({ title: 'New sub-board', status: 'new', anchor: [0.38, 0.97, 0.13], at:
 
 // ---------- Measured dimensions ----------
 dimension([0, 0.25, 0.04], [2.85, 0.25, 0.04], '2.85 m', [0, 1, 0]);
-dimension([0.03, 0, 0.03], [0.03, 2.28, 0.03], '2.28 m', [1, 0, 0]);
+dimension([2.80, 0, 0.03], [2.80, 2.28, 0.03], '2.28 m', [1, 0, 0]);
 
 // ---------- Site photos ----------
 // A pin places a thumbnail on the model beside what the photo shows; an inset pins it to the corner of the view.
@@ -751,14 +746,17 @@ resize();
 setMode(params.get('mode') === 'existing' ? 'existing' : 'proposed');
 setView(VIEWS[params.get('view')] ? params.get('view') : 'overview');
 
-// CSS2DRenderer rewrites each label's transform every frame, so this nudge does not accumulate.
+// Keeps labels clear of the view edges and the corner photos. CSS2DRenderer rewrites each
+// label's transform every frame, so the nudge does not accumulate.
 function keepLabelsInView() {
   const box = stage.getBoundingClientRect();
+  const photos = insets.getBoundingClientRect();
   for (const el of labelRenderer.domElement.querySelectorAll('.callout, .dim')) {
     if (!el.offsetParent) continue;
     const r = el.getBoundingClientRect();
-    const left = r.left - box.left, right = r.right - box.left;
-    const shift = left < 4 ? 4 - left : right > box.width - 4 ? box.width - 4 - right : 0;
+    const besidePhotos = r.bottom > photos.top && r.top < photos.bottom && r.right > photos.left - 4 && photos.width > 0;
+    const rightLimit = besidePhotos ? photos.left - 4 : box.right - 4;
+    const shift = r.left < box.left + 4 ? box.left + 4 - r.left : r.right > rightLimit ? rightLimit - r.right : 0;
     if (shift) el.style.transform += ` translateX(${shift}px)`;
   }
 }
